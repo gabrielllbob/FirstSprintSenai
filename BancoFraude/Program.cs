@@ -55,32 +55,75 @@ class Program
     static void CriarConta()
     {
         Console.WriteLine("\n--- CRIAR CONTA ---");
-        Console.Write("Número da Conta: ");
-        int numero = int.Parse(Console.ReadLine());
+
+        int numero = 0;
+        bool numeroValido = false;
+
+        // 1. Loop para garantir que o número da conta seja válido e não repetido
+        while (!numeroValido)
+        {
+            // Deixa evidente o formato esperado
+            Console.Write("Número da Conta (Apenas números inteiros positivos, ex: 12345): ");
+            string entradaNumero = Console.ReadLine();
+
+            // Tenta converter. Se não for número ou for menor/igual a zero, dá erro.
+            if (!int.TryParse(entradaNumero, out numero) || numero <= 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("[ERRO] Formato inválido! Você deve digitar apenas números.\n");
+                Console.ResetColor();
+                continue; // Faz o loop rodar de novo
+            }
+
+            // Verifica se o número já existe na lista de contas
+            if (contas.Exists(c => c.NumeroConta == numero))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[ERRO] A conta número {numero} já existe! Tente outro número.\n");
+                Console.ResetColor();
+                continue; // Faz o loop rodar de novo
+            }
+
+            // Se passou pelas validações, o número é válido
+            numeroValido = true;
+        }
+
+        // 2. Coleta o restante dos dados
         Console.Write("Nome do Titular: ");
         string titular = Console.ReadLine();
 
-        Console.WriteLine("Tipo: [1] Corrente | [2] Poupança | [3] Empresarial");
+        Console.WriteLine("Tipo de Conta: [1] Corrente | [2] Poupança | [3] Empresarial");
+        Console.Write("Escolha o tipo: ");
         string tipo = Console.ReadLine();
 
         switch (tipo)
         {
             case "1":
                 contas.Add(new ContaCorrente(numero, titular));
+                Console.WriteLine("Conta Corrente criada com sucesso!");
                 break;
             case "2":
                 contas.Add(new ContaPoupanca(numero, titular));
+                Console.WriteLine("Conta Poupança criada com sucesso!");
                 break;
             case "3":
-                Console.Write("Limite de Empréstimo: ");
-                decimal limite = decimal.Parse(Console.ReadLine());
-                contas.Add(new ContaEmpresarial(numero, titular, limite));
+                Console.Write("Limite de Empréstimo (ex: 1000,00): ");
+
+                // Tratamento rápido caso o usuário digite o limite errado
+                if (decimal.TryParse(Console.ReadLine(), out decimal limite))
+                {
+                    contas.Add(new ContaEmpresarial(numero, titular, limite));
+                    Console.WriteLine("Conta Empresarial criada com sucesso!");
+                }
+                else
+                {
+                    Console.WriteLine("[ERRO] Valor de limite inválido. Cadastro cancelado.");
+                }
                 break;
             default:
-                Console.WriteLine("Tipo inválido.");
-                return;
+                Console.WriteLine("[ERRO] Tipo de conta inválido. Cadastro cancelado.");
+                break;
         }
-        Console.WriteLine("Conta criada com sucesso!");
     }
 
     static void RealizarDeposito()
